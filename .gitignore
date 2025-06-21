@@ -1,3 +1,16 @@
+# OS junk
+.DS_Store
+Thumbs.db
+Icon?
+._*
+.Spotlight-V100
+.Trashes
+__MACOSX/
+*.stackdump
+$RECYCLE.BIN/
+*~
+.nfs*
+
 # Build artifacts
 bin/
 obj/
@@ -59,19 +72,6 @@ _ReSharper*/
 
 # MSBuild binary log
 *.binlog
-
-# OS junk
-.DS_Store
-Thumbs.db
-Icon?
-._*
-.Spotlight-V100
-.Trashes
-__MACOSX/
-*.stackdump
-$RECYCLE.BIN/
-*~
-.nfs*
 
 # Test results / coverage
 TestResults/
@@ -166,3 +166,4 @@ docs/_build/
 # StyleCop
 StyleCopReport.xml
 stylecop.json.cache
+
