@@ -1,4 +1,3 @@
-global using System;
 using System.Threading;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -7,39 +6,46 @@ using System.Linq;
 using System.Net;
 using System.Text;
 
+using Status = Handlers.Status;
+
+namespace Server;
+
 class Listener
 {
     private const int maxConcurrentConnections = 4;
-    private static Semaphore _pool = new Semaphore(maxConcurrentConnections, maxConcurrentConnections);
-    static async Task Main()
-    {
-        HttpListener listener = InitializeListener(GetLocalAddresses());
-        listener.Start();
-        await Task.Run(() => RunServer(listener));
-    }
+    private static SemaphoreSlim _pool = new SemaphoreSlim(maxConcurrentConnections, maxConcurrentConnections);
 
-    static HttpListener InitializeListener(List<IPAddress> localAddresses)
+    public async static Task<HttpListener> InitializeListener()
     {
+        Console.WriteLine(" > Initializing Listener\n\n");
+
+        if (!HttpListener.IsSupported)
+        {
+            Console.WriteLine(" ! Cannot initialize listener on current OS.\n");
+            return null;
+        }
+
         HttpListener listener = new HttpListener();
-        listener.Prefixes.Add("http://localhost:8080/");
 
+        listener.Prefixes.Add("http://localhost:8080/");
+        var localAddresses = GetLocalAddresses();
         foreach (var ip in localAddresses)
         {
-            Console.WriteLine("http://" + ip.ToString() + ":8080/");
             listener.Prefixes.Add("http://" + ip.ToString() + ":8080/");
         }
 
-        return listener;
+        listener.Start();
+
+        await Task.Run(() => RunServer(listener));
+        return null;
     }
 
     private async static Task<Boolean> RunServer(HttpListener listener)
     {
         while (true)
         {
-            _pool.WaitOne();
             await StartConnectionListener(listener);
-        } 
-        return true;
+        }
     }
 
     private async static Task StartConnectionListener(HttpListener listener)
@@ -47,43 +53,47 @@ class Listener
         try
         {
             HttpListenerContext _context = await listener.GetContextAsync();
-            
-            string response = "Hello Browser!";
-            byte[] encoded = Encoding.UTF8.GetBytes(response);
-            _context.Response.ContentLength64 = encoded.Length;
-            _context.Response.OutputStream.Write(encoded, 0, encoded.Length);
-            _context.Response.OutputStream.Close();
-
-            return;
+            try
+            {
+                Status.Response(_context, _pool);
+            }
+            catch (Exception err)
+            {
+                Console.WriteLine($" ! Error: {err}\n");
+            }
+            finally
+            {
+                _pool.Release();
+            }
         }
         catch (HttpListenerException err)
         {
-            _pool.Release();
-            Console.WriteLine($"Error {err}");
+            Console.WriteLine($" ! Error: {err}\n");
         }
     }
 
-    public static List<IPAddress> GetLocalAddresses()
+    private static List<IPAddress> GetLocalAddresses()
     {
         IPHostEntry host;
         host = Dns.GetHostEntry(Dns.GetHostName());
         List<IPAddress> localAddresses = host.AddressList.Where(ip => ip.AddressFamily == AddressFamily.InterNetwork).ToList();
-        Console.WriteLine("\nLocal Addresses: ");
+        Console.WriteLine(" > Local Addresses:");
         foreach (var ip in localAddresses)
         {
-            Console.WriteLine($"> {ip}");
+            Console.WriteLine($" [ {ip} ]");
         }
+        Console.WriteLine($"\n");
         return localAddresses;
     }
 
-    public static async Task<List<IPAddress>> ResolveAddressAsync()
+    private static async Task<List<IPAddress>> ResolveAddressAsync()
     {
         var ext = await Dns.GetHostAddressesAsync("google.com");
         var externalAddresses = ext.Where(ip => ip.AddressFamily == AddressFamily.InterNetwork).ToList();
         Console.WriteLine("\nRequested Addresses: ");
         foreach (var ip in externalAddresses)
         {
-            Console.WriteLine($"> {ip}");
+            Console.WriteLine($" : {ip}");
         }
         return externalAddresses;
     }
