@@ -15,7 +15,9 @@ class Listener
     private const int maxConcurrentConnections = 4;
     private static SemaphoreSlim _pool = new SemaphoreSlim(maxConcurrentConnections, maxConcurrentConnections);
 
-    public async static Task<HttpListener> InitializeListener()
+    public Listener() { }
+
+    public async Task<HttpListener> InitializeListener()
     {
         Console.WriteLine(" > Initializing Listener\n\n");
 
@@ -37,10 +39,10 @@ class Listener
         listener.Start();
 
         await Task.Run(() => RunServer(listener));
-        return null;
+        return listener;
     }
 
-    private async static Task<Boolean> RunServer(HttpListener listener)
+    private async Task<Boolean> RunServer(HttpListener listener)
     {
         while (true)
         {
@@ -48,14 +50,15 @@ class Listener
         }
     }
 
-    private async static Task StartConnectionListener(HttpListener listener)
+    private async Task StartConnectionListener(HttpListener listener)
     {
         try
         {
             HttpListenerContext _context = await listener.GetContextAsync();
             try
             {
-                Status.Response(_context, _pool);
+                await _pool.WaitAsync();
+                Status.Response(_context);
             }
             catch (Exception err)
             {

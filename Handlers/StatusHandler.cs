@@ -3,12 +3,10 @@ using System.Text;
 using System.Threading;
 
 namespace Handlers;
-
 class Status
 {
-    public async static void Response(HttpListenerContext _context, SemaphoreSlim _pool)
+    public async static void Response(HttpListenerContext _context)
     {
-        await _pool.WaitAsync();
         string response = "<html><body>Status: Running!</html></body>";
         byte[] encoded = Encoding.UTF8.GetBytes(response);
         _context.Response.ContentLength64 = encoded.Length;

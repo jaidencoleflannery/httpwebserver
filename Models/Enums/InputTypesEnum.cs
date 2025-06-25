@@ -1,0 +1,5 @@
+enum InputTypes
+{
+    end,
+    status
+}
