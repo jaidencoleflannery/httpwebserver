@@ -6,6 +6,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 
+using Server.Router;
 using Status = Handlers.Status;
 
 namespace Server;
@@ -38,7 +39,7 @@ class Listener
 
         listener.Start();
 
-        await Task.Run(() => RunServer(listener));
+        await RunServer(listener);
         return listener;
     }
 
@@ -58,6 +59,7 @@ class Listener
             try
             {
                 await _pool.WaitAsync();
+                //Router.RouteRequest(_context);
                 Status.Response(_context);
             }
             catch (Exception err)

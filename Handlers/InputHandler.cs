@@ -1,3 +1,8 @@
+using System.Collections.Generic;
+
+using Models.Enums;
+using Handlers;
+
 namespace Handlers;
 
 class InputHandler
@@ -6,15 +11,24 @@ class InputHandler
 
     public InputHandler() { }
 
+    public void InitializeListener()
+    {
+        while (true)
+        {
+            var input = Console.ReadLine();
+            if (Enum.IsDefined(typeof(InputTypes), input))
+            {
+                Call(input);
+            }
+            else
+            {
+                Console.WriteLine($" > Invalid Input, {input} is not recognized.");
+            }
+        }
+    }
+
     public void Call(string Event)
     {
-        if (Event == "end")
-        {
-            Environment.Exit(1);
-        }
-        if (Event == "status")
-        {
-            Status.Response();
-        }
+        Console.WriteLine("true");
     }
 }

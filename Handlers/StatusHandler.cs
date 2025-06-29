@@ -3,6 +3,7 @@ using System.Text;
 using System.Threading;
 
 namespace Handlers;
+
 class Status
 {
     public async static void Response(HttpListenerContext _context)
@@ -13,5 +14,10 @@ class Status
         _context.Response.OutputStream.Write(encoded, 0, response.Length);
         _context.Response.OutputStream.Close();
         Console.WriteLine($" > Request [{DateTime.Now:T}] {_context.Request.HttpMethod} {_context.Request.Url}");
+    }
+
+    public async static void LocalResponse()
+    {
+        Console.WriteLine($" > Running [{DateTime.Now:T}]");
     }
 }
